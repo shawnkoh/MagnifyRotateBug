@@ -7,9 +7,16 @@
 
 import SwiftUI
 
-enum Size: Int, CaseIterable, Equatable {
-    case size1 = 1, size2, size3, size4, size5
-}
+// Hello!
+// The main bug occurs when you repeatedly pinch in / out on the white rectangle.
+// SwiftUI will eventually fail - that is, you are no longer able to rotate and magnify the view.
+// Furthermore, other SwiftUI native components like a Picker stops becoming interactable.
+// However, you can still modify, and even animate, the value of the Picker by clicking on the Button.
+
+// This bug is also replicable without the Picker and the Button.
+
+// If you need any further clarifications please feel free to email me at shawn(at)shawnkoh(dot)sg
+// I am also readily contactable on Telegram at shawnkohzq
 
 struct ContentView: View {
     @State var scale: CGFloat = 1
@@ -18,12 +25,10 @@ struct ContentView: View {
     @State var angle = Angle()
     @State var finalAngle = Angle()
 
-    // Optional. The bug persists even without a Picker.
-    // The purpose of the Picker is to demonstrate the Picker UI freezing.
+    // Optional. Bug is still replicable if you remove this.
     @State var selection: Size = .size1
 
     var body: some View {
-        // Credit: https://stackoverflow.com/a/58468234/8639572
         let magnificationGesture = MagnificationGesture()
             .onChanged { scaleDelta in
                 print("magnify on changed", scaleDelta)
@@ -37,7 +42,6 @@ struct ContentView: View {
                 self.lastScale = 1
             }
 
-        // Credit: https://www.hackingwithswift.com/books/ios-swiftui/how-to-use-gestures-in-swiftui
         let rotationGesture = RotationGesture()
             .onChanged { angle in
                 print("rotate on changed", angle.degrees)
@@ -58,7 +62,7 @@ struct ContentView: View {
             .rotationEffect(angle + finalAngle)
             .gesture(magnificationAndRotationGesture)
             .frame(minWidth: .zero, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
-            // Optional. The bug persists even without a Picker.
+            // Optional. Bug is still replicable if you remove this.
             // The purpose of the Picker is to demonstrate the Picker UI freezing.
             .overlay(
                 Picker("Test", selection: $selection) {
@@ -74,6 +78,17 @@ struct ContentView: View {
                 .frame(width: 50)
                 , alignment: .leading
             )
+            // Optional. Bug is still replicable if you remove this.
+            .overlay(
+                Button {
+                    withAnimation {
+                        selection = Size(rawValue: Int.random(in: 1...5)) ?? .size1
+                    }
+                } label: {
+                    Text("Set Random Selection")
+                }
+                ,alignment: .trailing
+            )
     }
 }
 
@@ -81,6 +96,10 @@ struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
     }
+}
+
+enum Size: Int, CaseIterable, Equatable {
+    case size1 = 1, size2, size3, size4, size5
 }
 
 extension UIScreen {
