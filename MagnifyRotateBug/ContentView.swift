@@ -7,12 +7,20 @@
 
 import SwiftUI
 
+enum Size: Int, CaseIterable, Equatable {
+    case size1 = 1, size2, size3, size4, size5
+}
+
 struct ContentView: View {
     @State var scale: CGFloat = 1
     @State var lastScale: CGFloat = 1
 
     @State var angle = Angle()
     @State var finalAngle = Angle()
+
+    // Optional. The bug persists even without a Picker.
+    // The purpose of the Picker is to demonstrate the Picker UI freezing.
+    @State var selection: Size = .size1
 
     var body: some View {
         // Credit: https://stackoverflow.com/a/58468234/8639572
@@ -46,10 +54,26 @@ struct ContentView: View {
         Rectangle()
             .foregroundColor(.white)
             .frame(width: UIScreen.screenHeight, height: UIScreen.screenHeight)
-            .frame(minWidth: .zero, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
             .scaleEffect(scale)
             .rotationEffect(angle + finalAngle)
             .gesture(magnificationAndRotationGesture)
+            .frame(minWidth: .zero, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+            // Optional. The bug persists even without a Picker.
+            // The purpose of the Picker is to demonstrate the Picker UI freezing.
+            .overlay(
+                Picker("Test", selection: $selection) {
+                    ForEach((0 ..< Size.allCases.count).reversed(), id: \.self) { index in
+                        let size = Size.allCases[index]
+
+                        Circle()
+                            .foregroundColor(.red)
+                            .frame(width: 30, height: 30)
+                            .tag(size)
+                    }
+                }
+                .frame(width: 50)
+                , alignment: .leading
+            )
     }
 }
 
